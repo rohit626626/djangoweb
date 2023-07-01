@@ -1,0 +1,71 @@
+{% extends 'base.html' %} {% block title%}BlogPost{% endblock %} {%block blogactive%}active{%endblock blogactive%} {% block body %} {% load humanize %} {% load extras %}
+<div class="container my-3">
+    <h2 class="blog-post-title">{{post.title}}</h2>
+    <p class="blog-post-meta">{{post.timeStamp}} by {{post.author}} (<span>{{post.views}} Views</span>)</p>
+    <p>{{post.content}}</p>
+    <hr>
+</div>
+
+<div class="container">
+    <h2>Comments({{comments.count}})</h2>
+    <div class="my-2">
+        {% if user.is_authenticated%}
+        <form action="/blog/postComment" method="post">{% csrf_token %}
+            <div class="form-group">
+                <label for="name">Post Comment:</label>
+                <textarea class="form-control" id="comment" name='comment' placeholder="Enter Comment Here"></textarea>
+                <input type="hidden" class="form-control" name='postSno' value="{{post.sno}}">
+                <input type="hidden" class="form-control" name='parentSno' value="">
+            </div>
+    </div>
+
+    <button type="submit" class="btn btn-success">Submit</button>
+    </form>
+    {% else %}
+    <p>Please Login to post a comment</p>
+    {% endif %}
+
+</div>
+{% for comment in comments%}
+<div class="row my-3 mx-1">
+    <div class="col-md-2"><img class="rounded mx-auto d-block w-100 p-2" src="/static/img/user1.png"></div>
+    <div class="col-md-10"><strong>{{comment.user.username}}</strong> <span>{{comment.timeStamp | naturaltime}}</span>
+        <div>{{comment.comment}}</div>
+        <div class="reply mx-0">
+            {% if user.is_authenticated%}
+            <button class="btn btn-primary" type="button" data-target="#replyBox{{comment.sno}}" data-toggle="collapse" area-controls="replyBox{{comment.sno}}" aria-expanded="false">Reply</button>
+            </button>
+            <div class="collapse" id="replyBox{{comment.sno}}">
+                <div class="my-2">
+                    <form action="/blog/postComment" method="post">{% csrf_token %}
+                        <div class="form-group">
+                            <label for="name">Post Reply:</label>
+                            <textarea class="form-control" id="comment" name='comment' placeholder="Enter Reply Here"></textarea>
+                        </div>
+                        <input type="hidden" class="form-control" name='postSno' value="{{post.sno}}">
+                        <input type="hidden" class="form-control" name='parentSno' value="{{comment.sno}}">
+
+                        <button type="submit" class="btn btn-success">Submit</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <button class="btn btn-primary" type="button" data-target="#replyBox{{comment.sno}}" data-toggle="collapse" area-controls="replyBox{{comment.sno}}" aria-expanded="false" disabled>Login to Reply</button> {% endif %}
+            <div class="replies  my-3">
+                <div class="row my-3">
+                    {% for reply in replyDict|get_val:comment.sno %}
+
+                    <div class="col-md-2"><img class="rounded mx-auto d-block w-100 p-2" src="/static/img/user1.png"></div>
+                    <div class="col-md-10 my-3"><strong>{{reply.user.username}}</strong> <span>{{reply.timeStamp | naturaltime}}</span>
+                        <div>{{reply.comment}}</div>
+                    </div>
+                    <br> {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+{% endblock body %}
